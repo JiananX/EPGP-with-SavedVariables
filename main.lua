@@ -114,13 +114,13 @@ function rewardRaid()
 
     for key, value in pairs(char_frames) do
         if (tableContains(raiders, key)) then
-            local ep_frame = data_frames[value][2]
-            ep_frame.text:SetText(ep_frame.text:GetText() + 200)
+            Raiders[key]["ep"] = Raiders[key]["ep"] + 200
         end
     end
+
+    updateCharFrames()
 end
 
---TODO: Panel swicth and reset signal
 function showLootDistributionPanel(loot_name)
     if (not IsInRaid()) then
         return
@@ -151,6 +151,17 @@ function showLootDistributionPanel(loot_name)
     attatchLootFrame()
 end
 
+
+function updateCharFrames()
+    for key, value in pairs(char_frames) do
+        local ep = Raiders[key]["ep"]
+        local gp = Raiders[key]["gp"]
+
+        data_frames[value][2].text:SetText(ep)
+        data_frames[value][3].text:SetText(gp)
+        data_frames[value][4].text:SetText(round3Digits(ep * 1 / gp))
+    end
+end
 
 ----------- Private -----------
 function resetRoot()
