@@ -1,22 +1,21 @@
 ------------ Globle frames(Fixed) ------------
-frame = CreateFrame("Frame", nil, UIParent)
- --
+frame = CreateFrame("Frame", nil, UIParent) -- e.g. {["Akitainu"] = char_frame}
+--
 
---[[ Need to be reset upon close ]] -- e.g. {["Akitainu"] = char_frame}
-char_frames = {}
+--[[ Need to be reset upon close ]] char_frames = {}
 
 overview_header_frame = CreateFrame("Frame", nil, nil)
 reward_button = CreateFrame("Button", "rewardButton", nil, "UIPanelButtonTemplate")
 
 main_spec_section = CreateFrame("Frame", nil, nil)
-off_spec_section = CreateFrame("Frame", nil, nil)
+off_spec_section = CreateFrame("Frame", nil, nil) -- e.g. {[char_frame] = {ep_frame, gp_frame, pr_frame}}
 
---[[ No Need to be reset upon close ]] -- e.g. {[char_frame] = {ep_frame, gp_frame, pr_frame}}
-data_frames = {}
+--[[ No Need to be reset upon close ]] data_frames = {}
 loot_confirmation_dialog = CreateFrame("Frame", frame, nil)
 
 ------------ Globle vars ------------
 current_loot_name = nil
+last_click_char = nil
 
 ------------ Command section ------------
 SLASH_EPGPSV1 = "/epgpsv"
@@ -32,13 +31,12 @@ end
 local events = {}
 
 function events:CHAT_MSG_WHISPER(msg, author, ...)
-    if (msg ~= "1" and msg ~= "2" ) then
+    if (msg ~= "1" and msg ~= "2") then
         return
     end
 
     author = author:gsub("-.+", "")
 
-    print(current_loot_name)
     if ((current_loot_name == nil) or (char_frames[author] == nil) or (not IsInRaid())) then
         return
     end
@@ -58,7 +56,7 @@ function events:CHAT_MSG_WHISPER(msg, author, ...)
         author_frame:SetParent(main_spec_section)
         author_frame:SetPoint("TOP", 0, -current_child_count * 20)
         author_frame:Show()
-    else 
+    else
         -- spec section will always have header
         local current_child_count = off_spec_section:GetNumChildren()
 
@@ -92,7 +90,7 @@ for k, v in pairs(events) do
 end
 
 ----------- Callback -----------
-function showOverviewPanel()	
+function showOverviewPanel()
     resetRoot()
     attatchOverviewFrame()
 
@@ -114,13 +112,13 @@ function rewardRaid()
 
     for key, value in pairs(char_frames) do
         if (tableContains(raiders, key)) then
-            local ep_frame = data_frames[value][2]
-            ep_frame.text:SetText(ep_frame.text:GetText() + 200)
+            Raiders[key]["ep"] = Raiders[key]["ep"] + 200
         end
     end
+
+    updateCharFrames()
 end
 
---TODO: Panel swicth and reset signal
 function showLootDistributionPanel(loot_name)
     if (not IsInRaid()) then
         return
@@ -141,27 +139,38 @@ function showLootDistributionPanel(loot_name)
         showOverviewPanel()
     end
 
-    SendChatMessage("正在分配" .. loot_link..Loots[loot_name]["gp"], "RAID_WARNING", nil, nil)
+    SendChatMessage("正在分配" .. loot_link .. Loots[loot_name]["gp"], "RAID_WARNING", nil, nil)
     SendChatMessage("1. 主天赋 密1", "RAID_WARNING", nil, nil)
     SendChatMessage("2. 副天赋 密2", "RAID_WARNING", nil, nil)
 
     resetRoot()
 
-    current_loot_name = loot_name   
+    current_loot_name = loot_name
     attatchLootFrame()
 end
 
+function updateCharFrames()
+    for key, value in pairs(char_frames) do
+        local ep = Raiders[key]["ep"]
+        local gp = Raiders[key]["gp"]
+
+        data_frames[value][2].text:SetText(ep)
+        data_frames[value][3].text:SetText(gp)
+        data_frames[value][4].text:SetText(round3Digits(ep * 1 / gp))
+    end
+end
 
 ----------- Private -----------
 function resetRoot()
     detachAllFrames()
 
     current_loot_name = nil
+    last_click_char = nil
 end
 
 function _allNamesFromSpec()
-    local main_spec_children = { main_spec_section:GetChildren() }
-    local off_spec_children = { off_spec_section:GetChildren() }
+    local main_spec_children = {main_spec_section:GetChildren()}
+    local off_spec_children = {off_spec_section:GetChildren()}
     local all_names = {}
 
     for i, child in ipairs(main_spec_children) do
@@ -178,4 +187,3 @@ function _allNamesFromSpec()
 
     return all_names
 end
-
