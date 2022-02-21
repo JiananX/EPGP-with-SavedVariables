@@ -1,0 +1,11 @@
+## Interface: 20503
+## Title: Epgp with SavedVariables
+## Author: Jianan
+## Version: v0.0.1
+## SavedVariables: Raiders, Loots
+
+
+epgp_with_saved_variables.xml
+main.lua
+frame.lua
+util.lua
