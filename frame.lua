@@ -63,7 +63,13 @@ function initializeLootConfirmationFrame()
     main_spec_button:SetScript(
         "OnClick",
         function(...)
-            resetRoot() 
+            if (current_loot_name ~= nil and last_click_char ~= nil) then
+                child1, _, _, _ = last_click_char:GetChildren()
+                Raiders[child1.text:GetText()]["gp"] =
+                    Raiders[child1.text:GetText()]["gp"] + Loots[current_loot_name]["gp"]
+            end
+
+            resetRoot()
             attatchOverviewFrame()
         end
     )
@@ -75,11 +81,17 @@ function initializeLootConfirmationFrame()
     off_spec_button:SetScript(
         "OnClick",
         function(...)
-            resetRoot() 
+            if (current_loot_name ~= nil and last_click_char ~= nil) then
+                child1, _, _, _ = last_click_char:GetChildren()
+                Raiders[child1.text:GetText()]["gp"] =
+                    Raiders[child1.text:GetText()]["gp"] + Loots[current_loot_name]["gp"] / 2
+            end
+
+            resetRoot()
             attatchOverviewFrame()
         end
     )
-    off_spec_button:SetPoint("TOP", 0, -160)  
+    off_spec_button:SetPoint("TOP", 0, -160)
 
     loot_confirmation_dialog:Hide()
 end
@@ -92,8 +104,9 @@ function initializeCharFrame()
 
         char_frame:SetScript(
             "OnMouseDown",
-            function(...)
+            function(self)
                 if (current_loot_name ~= nil) then
+                    last_click_char = self
                     loot_confirmation_dialog:Show()
                 end
             end
@@ -104,33 +117,45 @@ function initializeCharFrame()
         data_frames[char_frame][1] = _createDataFrame(char_frame, 0, key)
         data_frames[char_frame][2] = _createDataFrame(char_frame, 150, value["ep"])
         data_frames[char_frame][3] = _createDataFrame(char_frame, 300, value["gp"])
-        data_frames[char_frame][3] = _createDataFrame(char_frame, 450, round3Digits((value["ep"] * 1 ) / value["gp"]))
+        data_frames[char_frame][4] = _createDataFrame(char_frame, 450, round3Digits((value["ep"] * 1) / value["gp"]))
     end
 end
 
 function initializeOverviewHeader()
-	_initializeSingleRowInOverview(overview_header_frame)
+    _initializeSingleRowInOverview(overview_header_frame)
     local name_column = _createDataFrame(overview_header_frame, 0, "Name")
     local ep_column = _createDataFrame(overview_header_frame, 150, "EP")
     local gp_column = _createDataFrame(overview_header_frame, 300, "GP")
     local pr_cloumn = _createDataFrame(overview_header_frame, 450, "PR")
 
-    _initializeOverviewHeaderColumn(name_column, function(raider_info)
-        -- TODO: implement sort function for name
-        return -1
-    end)
+    _initializeOverviewHeaderColumn(
+        name_column,
+        function(raider_info)
+            -- TODO: implement sort function for name
+            return -1
+        end
+    )
 
-    _initializeOverviewHeaderColumn(ep_column, function(raider_info)
-        return raider_info["ep"]
-    end)
+    _initializeOverviewHeaderColumn(
+        ep_column,
+        function(raider_info)
+            return raider_info["ep"]
+        end
+    )
 
-    _initializeOverviewHeaderColumn(gp_column, function(raider_info)
-        return raider_info["gp"]
-    end)
-    
-    _initializeOverviewHeaderColumn(pr_cloumn, function(raider_info)
-        return round3Digits((raider_info["ep"] * 1 ) / raider_info["gp"])
-    end)
+    _initializeOverviewHeaderColumn(
+        gp_column,
+        function(raider_info)
+            return raider_info["gp"]
+        end
+    )
+
+    _initializeOverviewHeaderColumn(
+        pr_cloumn,
+        function(raider_info)
+            return round3Digits((raider_info["ep"] * 1) / raider_info["gp"])
+        end
+    )
 end
 
 function initializeRewardButton()
@@ -179,7 +204,7 @@ function _initializeSingleRowInOverview(row_frame)
     t:SetColorTexture(r or 0, g or 0, b or 0, 0)
     t:SetAllPoints(row_frame)
     row_frame.texture = t
-end 
+end
 
 function _initializeOverviewHeaderColumn(column, sorted_base)
     column.text:SetTextColor(r or 255, g or 0, b or 0, 1)
@@ -192,9 +217,12 @@ function _initializeOverviewHeaderColumn(column, sorted_base)
                 table.insert(sorted_table, {key, sorted_base(value)})
             end
 
-            table.sort(sorted_table, function(a, b)
-                return a[2] > b[2]
-            end)
+            table.sort(
+                sorted_table,
+                function(a, b)
+                    return a[2] > b[2]
+                end
+            )
 
             local overview_padding_top = 50
             for key, value in pairs(sorted_table) do
@@ -203,7 +231,6 @@ function _initializeOverviewHeaderColumn(column, sorted_base)
                 overview_padding_top = overview_padding_top + 20
             end
         end
-
     )
 end
 
@@ -257,16 +284,17 @@ function detachAllFrames()
 end
 
 function attatchOverviewFrame()
-	local overview_padding_top = 50
+    local overview_padding_top = 50
     for key, value in pairs(char_frames) do
         value:SetParent(frame)
         value:SetPoint("TOP", 0, -overview_padding_top)
         value:Show()
         overview_padding_top = overview_padding_top + 20
     end
+    updateCharFrames()
 
     overview_header_frame:SetParent(frame)
-    overview_header_frame:SetPoint("TOP", 0, -30)	
+    overview_header_frame:SetPoint("TOP", 0, -30)
     overview_header_frame:Show()
 
     reward_button:SetParent(frame)
@@ -276,10 +304,10 @@ end
 
 function attatchLootFrame()
     main_spec_section:SetParent(frame)
-    main_spec_section:SetPoint("TOP", 0, -30)   
+    main_spec_section:SetPoint("TOP", 0, -30)
     main_spec_section:Show()
 
     off_spec_section:SetParent(frame)
-    off_spec_section:SetPoint("TOP", 0, -315)   
+    off_spec_section:SetPoint("TOP", 0, -315)
     off_spec_section:Show()
 end
