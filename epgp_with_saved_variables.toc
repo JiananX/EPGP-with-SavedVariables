@@ -5,7 +5,12 @@
 ## SavedVariables: Raiders, Loots
 
 
-epgp_with_saved_variables.xml
+overview_frame.lua
+loot_frame.lua
+main_frame.lua
+frame_control.lua
+
 main.lua
-frame.lua
 util.lua
+
+epgp_with_saved_variables.xml

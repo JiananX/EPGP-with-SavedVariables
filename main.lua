@@ -1,17 +1,21 @@
 ------------ Globle frames(Fixed) ------------
-frame = CreateFrame("Frame", nil, UIParent) -- e.g. {["Akitainu"] = char_frame}
---
+frame = CreateFrame("Frame", nil, UIParent)
+back_to_overview_button = CreateFrame("Button", "rewardButton", frame, "UIPanelButtonTemplate")
 
---[[ Need to be reset upon close ]] char_frames = {}
+------------ Globle frames Need to be reset ------------
+char_frames = {}
 
 overview_header_frame = CreateFrame("Frame", nil, nil)
+overview_scroll_frame = CreateFrame("Frame", nil, nil)
 reward_button = CreateFrame("Button", "rewardButton", nil, "UIPanelButtonTemplate")
 
 main_spec_section = CreateFrame("Frame", nil, nil)
-off_spec_section = CreateFrame("Frame", nil, nil) -- e.g. {[char_frame] = {ep_frame, gp_frame, pr_frame}}
+off_spec_section = CreateFrame("Frame", nil, nil)
+loot_confirmation_dialog = CreateFrame("Frame", nil, nil)
+ 
+ ------------ Globle frames No need to be reset ------------
+data_frames = {}
 
---[[ No Need to be reset upon close ]] data_frames = {}
-loot_confirmation_dialog = CreateFrame("Frame", frame, nil)
 
 ------------ Globle vars ------------
 current_loot_name = nil
@@ -31,15 +35,29 @@ end
 local events = {}
 
 function events:CHAT_MSG_WHISPER(msg, author, ...)
-    if (msg ~= "1" and msg ~= "2") then
+    if (msg ~= "1" and msg ~= "2" and msg ~= "pr") then
         return
     end
 
     author = author:gsub("-.+", "")
+    char_info = characterInRaid(author)
 
-    if ((current_loot_name == nil) or (char_frames[author] == nil) or (not IsInRaid())) then
+    if (msg == "pr") then
+        if (Raiders[author] ~= nil) then
+            SendChatMessage("EP:" ..
+                        Raiders[author]["ep"] ..
+                            " GP: " ..
+                                Raiders[author]["gp"] ..
+                                    " PR: " .. round3Digits(Raiders[author]["ep"] * 1 / Raiders[author]["gp"]), "WHISPER", nil, author)
+        end
+
+        return
+    end 
+
+    if ((current_loot_name == nil) or (char_frames[author] == nil) or (not IsInRaid()) or (char_info == nil)) then
         return
     end
+
 
     local all_names = _allNamesFromSpec()
 
@@ -48,11 +66,16 @@ function events:CHAT_MSG_WHISPER(msg, author, ...)
         return
     end
 
+
+
+    local author_frame = char_frames[author]
+    local color = class_to_color[char_info[2]]
+    data_frames[author_frame][1].text:SetTextColor(color[1], color[2], color[3], 1)
+
     if (msg == "1") then
         -- spec section will always have header
         local current_child_count = main_spec_section:GetNumChildren()
 
-        local author_frame = char_frames[author]
         author_frame:SetParent(main_spec_section)
         author_frame:SetPoint("TOP", 0, -current_child_count * 20)
         author_frame:Show()
@@ -60,7 +83,6 @@ function events:CHAT_MSG_WHISPER(msg, author, ...)
         -- spec section will always have header
         local current_child_count = off_spec_section:GetNumChildren()
 
-        local author_frame = char_frames[author]
         author_frame:SetParent(off_spec_section)
         author_frame:SetPoint("TOP", 0, -current_child_count * 20)
         author_frame:Show()
@@ -70,11 +92,16 @@ end
 function events:ADDON_LOADED(name)
     if (name == "epgp_with_saved_variables") then
         initializeRootFrame()
+        initializeBackToOverviewButton()
+                -- why order matters and why it is influencing whether it can show popup overvierw preview properly???
+        initializeOverviewScrollFrame()
+
         initializeCharFrame()
         initializeRewardButton()
         initializeLootConfirmationFrame()
         initializeOverviewHeader()
         initializeLootSection()
+
     end
 end
 
@@ -108,10 +135,9 @@ function rewardRaid()
         return
     end
 
-    local raiders = retrieveRaidRoster()
 
     for key, value in pairs(char_frames) do
-        if (tableContains(raiders, key)) then
+        if (characterInRaid(key) ~= nil) then
             Raiders[key]["ep"] = Raiders[key]["ep"] + 200
         end
     end
@@ -157,7 +183,62 @@ function updateCharFrames()
         data_frames[value][2].text:SetText(ep)
         data_frames[value][3].text:SetText(gp)
         data_frames[value][4].text:SetText(round3Digits(ep * 1 / gp))
+
+        char_info = characterInRaid(key)
+        if (char_info ~= nil) then
+            local color = class_to_color[char_info[2]]
+            data_frames[value][1].text:SetTextColor(color[1], color[2], color[3], 1)
+        else 
+            data_frames[value][1].text:SetTextColor(0.14, 0.16, 0.18, 1)
+            data_frames[value][2].text:SetTextColor(0.14, 0.16, 0.18, 1)
+            data_frames[value][3].text:SetTextColor(0.14, 0.16, 0.18, 1)
+            data_frames[value][4].text:SetTextColor(0.14, 0.16, 0.18, 1)
+        end
     end
+end
+
+function announceLootResult(winner)
+    local main_spec_children = {main_spec_section:GetChildren()}
+    local off_spec_children = {off_spec_section:GetChildren()}
+
+    SendChatMessage("Main Spec:", "RAID", nil, nil)
+    for i, child in ipairs(main_spec_children) do
+        if (getKeyInTable(char_frames, child) ~= nil) then
+            local char = getKeyInTable(char_frames, child)
+            SendChatMessage(
+                char ..
+                    " EP:" ..
+                        Raiders[char]["ep"] ..
+                            " GP: " ..
+                                Raiders[char]["gp"] ..
+                                    " PR: " .. round3Digits(Raiders[char]["ep"] * 1 / Raiders[char]["gp"]),
+                "RAID",
+                nil,
+                nil
+            )
+        end
+    end
+
+    SendChatMessage("Off Spec:", "RAID", nil, nil)
+    for i, child in ipairs(off_spec_children) do
+        if (getKeyInTable(char_frames, child) ~= nil) then
+            local char = getKeyInTable(char_frames, child)
+            SendChatMessage(
+                char ..
+                    " EP:" ..
+                        Raiders[char]["ep"] ..
+                            " GP: " ..
+                                Raiders[char]["gp"] ..
+                                    " PR: " .. round3Digits(Raiders[char]["ep"] * 1 / Raiders[char]["gp"]),
+                "RAID",
+                nil,
+                nil
+            )
+        end
+    end
+
+    SendChatMessage("----------------WINNER-----------------:", "RAID", nil, nil)
+    SendChatMessage(winner, "RAID", nil, nil)
 end
 
 ----------- Private -----------
