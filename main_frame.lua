@@ -33,7 +33,7 @@ function initializeCharFrame()
     for key, value in pairs(Raiders) do
         local char_frame = CreateFrame("Frame", nil, nil)
 
-        _initializeSingleRowInOverview(char_frame)
+        initializeSingleRowInOverview(char_frame)
 
         char_frame:SetScript(
             "OnMouseDown",
@@ -63,6 +63,19 @@ function initializeBackToOverviewButton()
         "OnClick",
         function(...)
             showOverviewPanel()
+        end
+    )
+end
+
+function initializeLootReviewButton()
+    review_loot_button:SetText("Loot")
+    review_loot_button:SetWidth(80)
+    review_loot_button:SetPoint("TOPLEFT", 100, -5)    
+    review_loot_button:SetScript(
+        "OnClick",
+        function(...)
+            resetRoot()
+            attatchLootReviewFrame()
         end
     )
 end
@@ -111,7 +124,7 @@ function _createDataFrame(parent, left_padding, initial_value)
     return data_frame
 end
 
-function _initializeSingleRowInOverview(row_frame)
+function initializeSingleRowInOverview(row_frame)
     row_frame:SetWidth(600)
     row_frame:SetHeight(20)
 

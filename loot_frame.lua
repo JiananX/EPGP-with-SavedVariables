@@ -99,3 +99,18 @@ function _initializeLootSpecSection(spec_section, spec_text)
 
     spec_header:SetPoint("TOP", 0, 0)
 end
+
+function initializeLootReviewFrame()
+    loot_review_frame:SetWidth(600)
+    loot_review_frame:SetHeight(500)
+    -- must set point like this way, otherwise cannot be reset, not sure why yet
+    loot_review_frame:SetPoint("TOP", 0, -30)
+
+    local t = loot_review_frame:CreateTexture(nil, "BACKGROUND")
+    t:SetColorTexture(r or 0, g or 0, b or 0, 0)
+    t:SetAllPoints(loot_review_frame)
+    loot_review_frame.texture = t
+
+    loot_review_frame:SetFrameStrata("HIGH")
+    loot_review_frame:SetFrameLevel(80)
+end

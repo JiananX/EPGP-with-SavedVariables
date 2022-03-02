@@ -23,20 +23,26 @@ function detachAllFrames()
 
     loot_confirmation_dialog:SetParent(nil)
     loot_confirmation_dialog:Hide()
+
+    for key, value in pairs(loot_item_frames) do
+        value:SetParent(nil)
+        value:Hide()
+    end
+
+    loot_review_frame:SetParent(nil)
+    loot_review_frame:Hide()
 end
 
 function attatchOverviewFrame()
     local overview_padding_top = 0
-    print("1111")
     for key, value in pairs(char_frames) do
         value:SetParent(overview_scroll_frame.scrollchild)
         value:SetPoint("TOP", 0, -overview_padding_top)
         value:Show()
         overview_padding_top = overview_padding_top + 20
     end
-    print("222")
     updateCharFrames()
-        print("333")
+
     overview_header_frame:SetParent(frame)
     overview_header_frame:SetPoint("TOP", 0, -30)
     overview_header_frame:Show()
@@ -47,7 +53,7 @@ function attatchOverviewFrame()
 
 
     reward_button:SetParent(frame)
-    reward_button:SetPoint("TOPLEFT", frame, 100, -5)
+    reward_button:SetPoint("TOPLEFT", frame, 190, -5)
     reward_button:Show()
 end
 
@@ -61,4 +67,19 @@ function attatchLootFrame()
     off_spec_section:Show()
 
     loot_confirmation_dialog:SetParent(frame)
+end
+
+function attatchLootReviewFrame()
+    loot_review_frame:SetParent(frame)
+    loot_review_frame:SetPoint("TOP", 0, -30)
+
+    local overview_padding_top = 0
+    for key, value in pairs(loot_item_frames) do
+        value:SetParent(loot_review_frame)
+        value:SetPoint("TOP", 0, -overview_padding_top)
+        value:Show()
+        overview_padding_top = overview_padding_top + 20
+    end
+
+    loot_review_frame:Show()
 end

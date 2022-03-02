@@ -1,6 +1,7 @@
 ------------ Globle frames(Fixed) ------------
 frame = CreateFrame("Frame", nil, UIParent)
 back_to_overview_button = CreateFrame("Button", "rewardButton", frame, "UIPanelButtonTemplate")
+review_loot_button = CreateFrame("Button", "reviewLootButton", frame, "UIPanelButtonTemplate")
 
 ------------ Globle frames Need to be reset ------------
 char_frames = {}
@@ -12,7 +13,11 @@ reward_button = CreateFrame("Button", "rewardButton", nil, "UIPanelButtonTemplat
 main_spec_section = CreateFrame("Frame", nil, nil)
 off_spec_section = CreateFrame("Frame", nil, nil)
 loot_confirmation_dialog = CreateFrame("Frame", nil, nil)
- 
+
+loot_review_frame = CreateFrame("Frame", nil, nil)
+-- prefill 25
+loot_item_frames = {}
+
  ------------ Globle frames No need to be reset ------------
 data_frames = {}
 
@@ -93,15 +98,70 @@ function events:ADDON_LOADED(name)
     if (name == "epgp_with_saved_variables") then
         initializeRootFrame()
         initializeBackToOverviewButton()
+        initializeLootReviewButton()
                 -- why order matters and why it is influencing whether it can show popup overvierw preview properly???
         initializeOverviewScrollFrame()
 
+        initializeLootReviewFrame()
         initializeCharFrame()
         initializeRewardButton()
         initializeLootConfirmationFrame()
         initializeOverviewHeader()
         initializeLootSection()
 
+    end
+end
+
+function events:LOOT_OPENED()
+    local n = GetNumLootItems()
+
+    for i = 1, n do
+        local item = GetLootSlotLink(i)
+
+        -- filter out gold
+        if (item) then
+            local itemName = select(1, GetItemInfo(item))
+
+            if (Loots[loot_name] ~= nil) then
+                local itemLink = select(2, GetItemInfo(item))
+                local itemTexture = select(10, GetItemInfo(item))
+                
+                local item_frame = CreateFrame("Frame", nil, nil)
+
+                initializeSingleRowInOverview(item_frame)
+
+                item_frame:SetScript(
+                    "OnMouseDown",
+                    function(self)
+                        SendChatMessage("正在分配" .. itemLink .. Loots[itemName]["gp"], "RAID_WARNING", nil, nil)
+                        SendChatMessage("1. 主天赋 密1", "RAID_WARNING", nil, nil)
+                        SendChatMessage("2. 副天赋 密2", "RAID_WARNING", nil, nil)
+
+                        resetRoot()
+
+                        current_loot_name = itemName
+                        attatchLootFrame()
+                    end
+                )
+                local text = item_frame:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+                text:SetPoint("CENTER")
+                text:SetText(itemLink)
+                item_frame.text = text
+
+                local data_frame = CreateFrame("Frame", nil, item_frame)
+                data_frame:SetWidth(20)
+                data_frame:SetHeight(20)
+
+                local t = data_frame:CreateTexture(nil, "BACKGROUND")
+                t:SetTexture(itemTexture)
+                t:SetAllPoints(data_frame)
+                data_frame.texture = t
+
+                data_frame:SetPoint("LEFT", 10, 0)
+
+                table.insert(loot_item_frames, item_frame)
+            end
+        end
     end
 end
 

@@ -24,7 +24,7 @@ function initializeRewardButton()
 end
 
 function initializeOverviewHeader()
-    _initializeSingleRowInOverview(overview_header_frame)
+    initializeSingleRowInOverview(overview_header_frame)
     local name_column = _createDataFrame(overview_header_frame, 0, "Name")
     local ep_column = _createDataFrame(overview_header_frame, 150, "EP")
     local gp_column = _createDataFrame(overview_header_frame, 300, "GP")
