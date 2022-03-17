@@ -40,7 +40,7 @@ end
 local events = {}
 
 function events:CHAT_MSG_WHISPER(msg, author, ...)
-    if (msg ~= "1" and msg ~= "2" and msg ~= "pr") then
+    if (msg ~= "1" and msg ~= "2" and msg ~= "pr" and msg ~= "all pr") then
         return
     end
 
@@ -57,7 +57,32 @@ function events:CHAT_MSG_WHISPER(msg, author, ...)
         end
 
         return
-    end 
+    end
+
+    if (msg == 'all pr') then
+        local temp_raider = {}      
+        for key, value in pairs(Raiders) do
+            if (characterInRaid(key) ~= nil) then
+                print(key)
+                table.insert(temp_raider, {key, value});
+            end
+        end
+
+        table.sort(
+            temp_raider,
+            function(a, b)
+                return (a[2]["ep"] / a[2]["gp"]) > (b[2]["ep"] / b[2]["gp"])
+            end
+        )
+
+        for key, value in pairs(temp_raider) do
+            SendChatMessage(value[1].." EP:" ..
+                        Raiders[value[1]]["ep"] ..
+                            " GP: " ..
+                                Raiders[value[1]]["gp"] ..
+                                    " PR: " .. round3Digits(Raiders[value[1]]["ep"] * 1 / Raiders[value[1]]["gp"]), "RAID_WARNING", nil, nil)
+        end
+    end
 
     if ((current_loot_name == nil) or (char_frames[author] == nil) or (not IsInRaid()) or (char_info == nil)) then
         return
@@ -122,7 +147,7 @@ function events:LOOT_OPENED()
         if (item) then
             local itemName = select(1, GetItemInfo(item))
 
-            if (Loots[loot_name] ~= nil) then
+            if (Loots[itemName] ~= nil) then
                 local itemLink = select(2, GetItemInfo(item))
                 local itemTexture = select(10, GetItemInfo(item))
                 
@@ -248,6 +273,9 @@ function updateCharFrames()
         if (char_info ~= nil) then
             local color = class_to_color[char_info[2]]
             data_frames[value][1].text:SetTextColor(color[1], color[2], color[3], 1)
+            data_frames[value][2].text:SetTextColor(255, 255, 255, 1)
+            data_frames[value][3].text:SetTextColor(255, 255, 255, 1)
+            data_frames[value][4].text:SetTextColor(255, 255, 255, 1)
         else 
             data_frames[value][1].text:SetTextColor(0.14, 0.16, 0.18, 1)
             data_frames[value][2].text:SetTextColor(0.14, 0.16, 0.18, 1)

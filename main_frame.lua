@@ -76,6 +76,12 @@ function initializeLootReviewButton()
         function(...)
             resetRoot()
             attatchLootReviewFrame()
+
+            -- decay logic
+            -- for key, value in pairs(Raiders) do
+            --     value["ep"] = math.floor(value["ep"] * 0.85)
+            --     value["gp"] = math.floor(value["gp"] * 0.85)
+            -- end
         end
     )
 end
@@ -102,6 +108,8 @@ function _initializeScrollFrame(frameHolder)
     frameHolder.scrollchild:SetSize(frameHolder.scrollframe:GetWidth(), (frameHolder.scrollframe:GetHeight() * 2))
     frameHolder.moduleoptions = frameHolder.moduleoptions or CreateFrame("Frame", nil, frameHolder.scrollchild)
     frameHolder.moduleoptions:SetAllPoints(frameHolder.scrollchild)
+
+    frameHolder:Hide()
 end
 
 function _createDataFrame(parent, left_padding, initial_value)
