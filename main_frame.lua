@@ -77,7 +77,7 @@ function initializeLootReviewButton()
             resetRoot()
             attatchLootReviewFrame()
 
-            -- decay logic
+            --decay logic
             -- for key, value in pairs(Raiders) do
             --     value["ep"] = math.floor(value["ep"] * 0.85)
             --     value["gp"] = math.floor(value["gp"] * 0.85)

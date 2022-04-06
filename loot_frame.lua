@@ -61,7 +61,7 @@ function initializeLootConfirmationFrame()
                 child1, _, _, _ = last_click_char:GetChildren()
                 local child_name = child1.text:GetText()
                 announceLootResult(child_name)
-                Raiders[child_name]["gp"] = Raiders[child_name]["gp"] + math.ceil(Loots[current_loot_name]["gp"] / 2)
+                Raiders[child_name]["gp"] = Raiders[child_name]["gp"] + math.ceil(Loots[current_loot_name]["gp"] / 5)
             end
 
             resetRoot()
